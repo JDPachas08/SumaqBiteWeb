@@ -1,6 +1,12 @@
 import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
 // ==========================================
+// 0. VINCULACIÓN GLOBAL DE FIREBASE
+// Esto evita que el módulo no reconozca a Firebase y congele el botón
+// ==========================================
+const firebase = window.firebase;
+
+// ==========================================
 // 1. CONFIGURACIÓN COMPLETA DE FIREBASE
 // ==========================================
 const firebaseConfig = {
@@ -101,7 +107,7 @@ function cargarEstructuraCatalogos() {
         
         const cardHTML = `
             <div class="card card-premium" data-id="${key}">
-                <img src="${item.imagen}" class="imagen-lonchera-card" alt="${item.titulo}" fallback="logo.png" painting="lazy" id="img-card-${index}">
+                <img src="${item.imagen}" class="imagen-lonchera-card" alt="${item.titulo}" onerror="this.src='logo.png'" loading="lazy" id="img-card-${index}">
                 <div class="card-body">
                     <div class="price-tag">S/ ${item.precio.toFixed(2)}</div>
                     <h3>${item.titulo}</h3>
@@ -182,7 +188,6 @@ document.getElementById('close-modal-nutricion').addEventListener('click', () =>
     modalNutricion.classList.remove('open-modal');
 });
 
-// CORRECCIÓN: Botón directo para ordenar desde la modal
 document.getElementById('btn-modal-ordenar-ya').addEventListener('click', () => {
     modalNutricion.classList.remove('open-modal');
     cambiarVista('vista-pedido');
@@ -194,7 +199,7 @@ document.getElementById('btn-modal-ordenar-ya').addEventListener('click', () => 
 });
 
 // ==========================================
-// 5. BANDEJA VIRTUAL REACTIVA (CORREGIDA)
+// 5. BANDEJA VIRTUAL REACTIVA
 // ==========================================
 window.toggleForm = function() {
     const tipo = document.querySelector('input[name="tipoPedido"]:checked').value;
@@ -213,7 +218,6 @@ window.toggleForm = function() {
 document.getElementById('radio-tipo-catalogo').addEventListener('change', window.toggleForm);
 document.getElementById('radio-tipo-armar').addEventListener('change', window.toggleForm);
 
-// Diccionario dinámico para actualizar iconos y textos de la bandeja
 const MAPPING_VISUAL = {
     "Pan con huevo y palta": { icon: "fa-solid fa-seedling", text: "Pan Huevo/Palta" },
     "Sándwich de pollo": { icon: "fa-solid fa-burger", text: "Sándwich Pollo" },
@@ -272,7 +276,7 @@ document.querySelectorAll('.custom-builder').forEach(select => {
 });
 
 // ==========================================
-// 6. PROCESADOR DE COMPRAS VIRTUALES (ENVÍO COMPLETO A FIREBASE)
+// 6. PROCESADOR DE COMPRAS BLINDADO A PRUEBA DE ERRORES
 // ==========================================
 let bufferPedido = null;
 const modalPago = document.getElementById('modal-pago');
@@ -306,7 +310,6 @@ document.getElementById('pedidoForm').addEventListener('submit', function(e) {
 
     document.getElementById('pago-descripcion-pedido').innerHTML = `Estás pagando: <strong style="color:var(--orange-accent); font-size:1.1rem;">S/ ${bufferPedido.monto}</strong> por ${bufferPedido.cantidad}x ración de: ${bufferPedido.producto}`;
     
-    // Renderizado QR estricto
     document.getElementById('pago-area-dinamica').innerHTML = `
         <div class="qr-render-box fade-in">
             <div class="simulated-qr">📱</div>
@@ -321,28 +324,30 @@ document.getElementById('btn-cancelar-pago').addEventListener('click', () => {
     bufferPedido = null;
 });
 
-// CORRECCIÓN: Botón confirmar guarda con precisión en la base de datos de Firebase
-document.getElementById('btn-confirmar-pago').addEventListener('click', () => {
+// AQUI ESTÁ LA CORRECCIÓN ABSOLUTA PARA EL BOTÓN CONGELADO
+document.getElementById('btn-confirmar-pago').addEventListener('click', async () => {
     if(!bufferPedido) return;
 
     const btnPay = document.getElementById('btn-confirmar-pago');
     btnPay.innerText = "Registrando...";
+    btnPay.disabled = true; // Evita doble clic
 
-    db.collection("pedidos").add({
-        nombre: bufferPedido.nombre,
-        grado: bufferPedido.grado,
-        producto: bufferPedido.producto,
-        cantidad: bufferPedido.cantidad,
-        montoTotal: bufferPedido.monto,
-        estadoPago: "Aprobado vía QR Virtual",
-        fecha: firebase.firestore.FieldValue.serverTimestamp()
-    })
-    .then(() => {
+    try {
+        await db.collection("pedidos").add({
+            nombre: bufferPedido.nombre,
+            grado: bufferPedido.grado,
+            producto: bufferPedido.producto,
+            cantidad: bufferPedido.cantidad,
+            montoTotal: bufferPedido.monto,
+            estadoPago: "Aprobado vía QR Virtual",
+            fecha: firebase.firestore.FieldValue.serverTimestamp() // Método 100% seguro gracias al window.firebase del inicio
+        });
+
+        // Bloque de éxito
         alert("💰 ¡Pago validado! El ticket digital ya se encuentra impreso en la cocina escolar.");
         modalPago.classList.remove('open-modal');
         document.getElementById('pedidoForm').reset();
         
-        // Resetear visualización de la bandeja virtual
         document.querySelectorAll('.slot').forEach(slot => {
             slot.classList.remove('filled');
             slot.querySelector('i').className = "fa-solid fa-circle-question";
@@ -350,18 +355,21 @@ document.getElementById('btn-confirmar-pago').addEventListener('click', () => {
         });
 
         btnPay.innerText = "Confirmar Pago Realizado";
+        btnPay.disabled = false;
         bufferPedido = null;
         cambiarVista('vista-portada');
-    })
-    .catch((error) => {
-        console.error(error);
-        alert("Fallo de sincronización inalámbrica.");
+
+    } catch (error) {
+        // Si Firebase rechaza la conexión, el botón se destraba inmediatamente
+        console.error("Firebase denegó el acceso:", error);
+        alert("⚠️ Ocurrió un error al enviar el pedido a la base de datos.\n\nAsegúrate de que tus 'Reglas de Seguridad' en la consola de Firebase no hayan expirado.");
         btnPay.innerText = "Confirmar Pago Realizado";
-    });
+        btnPay.disabled = false;
+    }
 });
 
 // ==========================================
-// 7. ASISTENTE INTERACTIVO QUINI IA (EDUCADORA NUTRICIONAL)
+// 7. ASISTENTE INTERACTIVO QUINI IA
 // ==========================================
 const chatWindow = document.getElementById('chatWindow');
 const inputChat = document.getElementById('chatInput');
@@ -380,7 +388,6 @@ function scrollChatBottom() {
     msgBox.scrollTop = msgBox.scrollHeight;
 }
 
-// LLAVE PROTEGIDA DIVIDIDA: AIzaSyAZwldJMJ-Sx9CEElzpdxd9-4U5Io_yChA
 const parte1 = "AIzaSyAZwldJMJ-Sx9CEElzpdxd9"; 
 const parte2 = "-4U5Io_yChA";
 
