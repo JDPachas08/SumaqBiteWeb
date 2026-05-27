@@ -1,3 +1,6 @@
+// ==========================================
+// CONFIGURACIÓN DE CONEXIÓN FIREBASE (COCINA)
+// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyDvRNYdAI3_EsBj0nvlLUXvjng-wbfxueI",
     authDomain: "sumaqbite.firebaseapp.com",
@@ -5,81 +8,59 @@ const firebaseConfig = {
     projectId: "sumaqbite",
     storageBucket: "sumaqbite.firebasestorage.app",
     messagingSenderId: "827345920679",
-    appId: "1:827345920679:web:e26e6881ada986ded23182"
+    appId: "1:827345920679:web:e26e6881ada986ded23182",
+    measurementId: "G-0DZ23F062T"
 };
 
 if (!window.firebase.apps.length) {
     window.firebase.initializeApp(firebaseConfig);
 }
+const db = window.firebase.firestore();
 
-const listaContenedor = document.getElementById('listaPedidos');
-const contador = document.getElementById('contadorPedidos');
-let pedidosFirebase = [];
+// ==========================================
+// ESCUCHA ACTIVA EN TIEMPO REAL DESDE LA NUBE
+// ==========================================
+db.collection("pedidos").orderBy("fecha", "desc").onSnapshot((snapshot) => {
+    const listaContenedor = document.getElementById('listaPedidos');
+    const contador = document.getElementById('contadorPedidos');
+    
+    contador.innerText = `${snapshot.size} Órdenes Activas`;
 
-function renderizarTodo() {
-    let pedidosLocales = JSON.parse(localStorage.getItem('pedidos_concurso')) || [];
-    let total = pedidosFirebase.length + pedidosLocales.length;
-    contador.innerText = `${total} Órdenes Activas`;
-
-    if (total === 0) {
-        listaContenedor.innerHTML = '<p class="sin-pedidos" style="text-align:center; padding: 25px;">✨ Ningún pedido pendiente. La cocina está libre.</p>';
+    if (snapshot.empty) {
+        listaContenedor.innerHTML = '<p class="sin-pedidos" style="color:#928794; text-align:center; padding: 25px; font-style: italic;">✨ Ningún pedido pendiente. La cocina está libre.</p>';
         return;
     }
 
     listaContenedor.innerHTML = '';
     
-    // Dibujar Firebase
-    pedidosFirebase.forEach(doc => {
-        const p = doc.data();
-        listaContenedor.innerHTML += crearTarjeta(p.producto, p.nombre, p.grado, p.cantidad, p.montoTotal, doc.id, "firebase");
-    });
-
-    // Dibujar Emergencia Local
-    pedidosLocales.forEach(p => {
-        listaContenedor.innerHTML += crearTarjeta(p.producto, p.nombre, p.grado, p.cantidad, p.montoTotal, p.id, "local");
-    });
-
-    // Activar botones de despacho
-    pedidosFirebase.forEach(doc => {
-        let btn = document.getElementById(`btn-del-${doc.id}`);
-        if(btn) btn.onclick = () => { if(confirm("¿Despachado?")) window.firebase.firestore().collection("pedidos").doc(doc.id).delete(); };
-    });
-
-    pedidosLocales.forEach(p => {
-        let btn = document.getElementById(`btn-del-${p.id}`);
-        if(btn) btn.onclick = () => {
-            if(confirm("¿Despachado?")) {
-                let actuales = JSON.parse(localStorage.getItem('pedidos_concurso')) || [];
-                localStorage.setItem('pedidos_concurso', JSON.stringify(actuales.filter(x => x.id !== p.id)));
-                renderizarTodo();
-            }
-        };
-    });
-}
-
-function crearTarjeta(producto, nombre, grado, cantidad, monto, id, tipo) {
-    return `
-        <div class="pedido-card-moderno fade-in">
-            <div class="pedido-info">
-                <h4>${producto}</h4>
-                <p>Alumno: <strong style="color:white;">${nombre}</strong> | Sección: ${grado}</p>
-                <p><small style="color:#7bc143; font-weight:bold;">Cant: ${cantidad} | Pago: S/ ${monto}</small></p>
+    snapshot.forEach((doc) => {
+        const pedido = doc.data();
+        const itemHTML = `
+            <div class="pedido-card-moderno fade-in">
+                <div class="pedido-info">
+                    <h4>${pedido.producto}</h4>
+                    <p>Alumno: <strong style="color:white;">${pedido.nombre}</strong> | Sección: ${pedido.grado}</p>
+                    <p><small style="color: #7bc143; font-weight:bold;">Cantidad: ${pedido.cantidad} raciones | Pago verificado: S/ ${pedido.montoTotal || '0.00'}</small></p>
+                </div>
+                <button class="btn-despachar" id="btn-del-${doc.id}">
+                    <i class="fa-solid fa-check"></i> Despachado
+                </button>
             </div>
-            <button class="btn-despachar" id="btn-del-${id}"><i class="fa-solid fa-check"></i> Despachado</button>
-        </div>
-    `;
-}
+        `;
+        listaContenedor.innerHTML += itemHTML;
 
-// Escuchar Firebase si funciona
-try {
-    window.firebase.firestore().collection("pedidos").onSnapshot((snapshot) => {
-        pedidosFirebase = snapshot.docs;
-        renderizarTodo();
+        // Asignación manual del evento de borrado para evitar problemas con el ciclo del DOM
+        setTimeout(() => {
+            const btn = document.getElementById(`btn-del-${doc.id}`);
+            if(btn) {
+                btn.onclick = () => {
+                    if(confirm(`¿Confirmas que la ración de ${pedido.nombre} ya fue entregada en físico?`)) {
+                        db.collection("pedidos").doc(doc.id).delete();
+                    }
+                };
+            }
+        }, 50);
     });
-} catch(e) {
-    console.log("Modo 100% Offline (Local) Activado.");
-}
-
-// Escuchar actualizaciones locales automáticamente para el concurso
-window.addEventListener('storage', renderizarTodo);
-setInterval(renderizarTodo, 1500); // Forzar actualización cada segundo y medio
+}, (error) => {
+    console.error("Error en la conexión en tiempo real de la cocina: ", error);
+});
