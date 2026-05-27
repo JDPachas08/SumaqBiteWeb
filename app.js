@@ -2,7 +2,6 @@ import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
 // ==========================================
 // 0. VINCULACIÓN GLOBAL DE FIREBASE
-// Esto evita que el módulo no reconozca a Firebase y congele el botón
 // ==========================================
 const firebase = window.firebase;
 
@@ -276,7 +275,7 @@ document.querySelectorAll('.custom-builder').forEach(select => {
 });
 
 // ==========================================
-// 6. PROCESADOR DE COMPRAS BLINDADO A PRUEBA DE ERRORES
+// 6. PROCESADOR DE COMPRAS BLINDADO
 // ==========================================
 let bufferPedido = null;
 const modalPago = document.getElementById('modal-pago');
@@ -324,13 +323,12 @@ document.getElementById('btn-cancelar-pago').addEventListener('click', () => {
     bufferPedido = null;
 });
 
-// AQUI ESTÁ LA CORRECCIÓN ABSOLUTA PARA EL BOTÓN CONGELADO
 document.getElementById('btn-confirmar-pago').addEventListener('click', async () => {
     if(!bufferPedido) return;
 
     const btnPay = document.getElementById('btn-confirmar-pago');
     btnPay.innerText = "Registrando...";
-    btnPay.disabled = true; // Evita doble clic
+    btnPay.disabled = true;
 
     try {
         await db.collection("pedidos").add({
@@ -340,10 +338,9 @@ document.getElementById('btn-confirmar-pago').addEventListener('click', async ()
             cantidad: bufferPedido.cantidad,
             montoTotal: bufferPedido.monto,
             estadoPago: "Aprobado vía QR Virtual",
-            fecha: firebase.firestore.FieldValue.serverTimestamp() // Método 100% seguro gracias al window.firebase del inicio
+            fecha: window.firebase.firestore.FieldValue.serverTimestamp() // Corrección clave para evitar congelamiento
         });
 
-        // Bloque de éxito
         alert("💰 ¡Pago validado! El ticket digital ya se encuentra impreso en la cocina escolar.");
         modalPago.classList.remove('open-modal');
         document.getElementById('pedidoForm').reset();
@@ -360,7 +357,6 @@ document.getElementById('btn-confirmar-pago').addEventListener('click', async ()
         cambiarVista('vista-portada');
 
     } catch (error) {
-        // Si Firebase rechaza la conexión, el botón se destraba inmediatamente
         console.error("Firebase denegó el acceso:", error);
         alert("⚠️ Ocurrió un error al enviar el pedido a la base de datos.\n\nAsegúrate de que tus 'Reglas de Seguridad' en la consola de Firebase no hayan expirado.");
         btnPay.innerText = "Confirmar Pago Realizado";
@@ -388,8 +384,9 @@ function scrollChatBottom() {
     msgBox.scrollTop = msgBox.scrollHeight;
 }
 
-const parte1 = "AIzaSyAZwldJMJ-Sx9CEElzpdxd9"; 
-const parte2 = "-4U5Io_yChA";
+// INSERCIÓN DE LA NUEVA CLAVE GENERADA
+const parte1 = "AIzaSyDgXi3XYMQu73Z0c"; 
+const parte2 = "kN2mw_bCB4mIo-dMp8";
 
 const GEMINI_API_KEY = parte1 + parte2; 
 const ai = new GoogleGenerativeAI(GEMINI_API_KEY);
