@@ -475,7 +475,7 @@ async function procesarChatQuini() {
     try {
 
         const model = ai.getGenerativeModel({
-            model: 'gemini-1.5-flash'
+            model: 'gemini-2.0-flash'
         });
 
         const prompt = `
