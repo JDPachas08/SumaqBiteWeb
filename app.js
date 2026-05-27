@@ -280,41 +280,64 @@ document.querySelectorAll('.custom-builder').forEach(select => {
 let bufferPedido = null;
 const modalPago = document.getElementById('modal-pago');
 
+// Verificación de Firebase
+if (!db) {
+    console.error("Firestore no fue inicializado correctamente");
+}
+
 document.getElementById('pedidoForm').addEventListener('submit', function(e) {
     e.preventDefault();
+
     const tipo = document.querySelector('input[name="tipoPedido"]:checked').value;
     let descProducto = "";
     let montoCalculado = 0;
 
     if (tipo === "catalogo") {
         const refKey = selectorFormLista.value;
-        if(!refKey) { alert("Por favor, selecciona una Lonchera."); return; }
+
+        if (!refKey) {
+            alert("Por favor, selecciona una Lonchera.");
+            return;
+        }
+
         descProducto = DATA_LONCHERAS[refKey].titulo;
         montoCalculado = DATA_LONCHERAS[refKey].precio * parseInt(document.getElementById('cantidad').value);
+
     } else {
         const s = document.getElementById('customSolido').value || "Ninguno";
         const b = document.getElementById('customBebida').value || "Ninguno";
         const p = document.getElementById('customPostre').value || "Ninguno";
+
         descProducto = `Lonchera Armada (${s} + ${b} + ${p})`;
         montoCalculado = 5.00 * parseInt(document.getElementById('cantidad').value);
     }
 
     bufferPedido = {
-        nombre: document.getElementById('nombre').value,
-        grado: document.getElementById('grado').value,
+        nombre: document.getElementById('nombre').value.trim(),
+        grado: document.getElementById('grado').value.trim(),
         producto: descProducto,
-        cantidad: document.getElementById('cantidad').value,
+        cantidad: parseInt(document.getElementById('cantidad').value),
         monto: montoCalculado.toFixed(2)
     };
 
-    document.getElementById('pago-descripcion-pedido').innerHTML = `Estás pagando: <strong style="color:var(--orange-accent); font-size:1.1rem;">S/ ${bufferPedido.monto}</strong> por ${bufferPedido.cantidad}x ración de: ${bufferPedido.producto}`;
-    
+    document.getElementById('pago-descripcion-pedido').innerHTML = `
+        Estás pagando:
+        <strong style="color:var(--orange-accent); font-size:1.1rem;">
+            S/ ${bufferPedido.monto}
+        </strong>
+        por ${bufferPedido.cantidad}x ración de:
+        ${bufferPedido.producto}
+    `;
+
     document.getElementById('pago-area-dinamica').innerHTML = `
         <div class="qr-render-box fade-in">
             <div class="simulated-qr">📱</div>
-            <p style="font-size:0.85rem; color:#615662; font-weight:600;">Escanea el código QR en pantalla con Yape o Plin para registrar la transferencia simbólica.</p>
+            <p style="font-size:0.85rem; color:#615662; font-weight:600;">
+                Escanea el código QR en pantalla con Yape o Plin para registrar la transferencia simbólica.
+            </p>
         </div>
     `;
+
     modalPago.classList.add('open-modal');
 });
 
@@ -324,43 +347,61 @@ document.getElementById('btn-cancelar-pago').addEventListener('click', () => {
 });
 
 document.getElementById('btn-confirmar-pago').addEventListener('click', async () => {
-    if(!bufferPedido) return;
+
+    if (!bufferPedido) return;
 
     const btnPay = document.getElementById('btn-confirmar-pago');
-    btnPay.innerText = "Registrando...";
+
     btnPay.disabled = true;
+    btnPay.innerText = 'Registrando...';
 
     try {
-        await db.collection("pedidos").add({
+
+        const pedidoData = {
             nombre: bufferPedido.nombre,
             grado: bufferPedido.grado,
             producto: bufferPedido.producto,
             cantidad: bufferPedido.cantidad,
             montoTotal: bufferPedido.monto,
-            estadoPago: "Aprobado vía QR Virtual",
-            fecha: window.firebase.firestore.FieldValue.serverTimestamp() // Corrección clave para evitar congelamiento
-        });
+            estadoPago: 'Aprobado vía QR Virtual',
+            fecha: new Date().toISOString(),
+            timestamp: Date.now()
+        };
 
-        alert("💰 ¡Pago validado! El ticket digital ya se encuentra impreso en la cocina escolar.");
+        const response = await db.collection('pedidos').add(pedidoData);
+
+        console.log('Pedido registrado correctamente:', response.id);
+
+        alert('💰 ¡Pago validado! El ticket digital ya se encuentra impreso en la cocina escolar.');
+
         modalPago.classList.remove('open-modal');
+
         document.getElementById('pedidoForm').reset();
-        
+
         document.querySelectorAll('.slot').forEach(slot => {
             slot.classList.remove('filled');
-            slot.querySelector('i').className = "fa-solid fa-circle-question";
-            slot.querySelector('p').innerText = "Vacío";
+            slot.querySelector('i').className = 'fa-solid fa-circle-question';
+            slot.querySelector('p').innerText = 'Vacío';
         });
 
-        btnPay.innerText = "Confirmar Pago Realizado";
         btnPay.disabled = false;
+        btnPay.innerText = 'Confirmar Pago Realizado';
+
         bufferPedido = null;
+
         cambiarVista('vista-portada');
 
     } catch (error) {
-        console.error("Firebase denegó el acceso:", error);
-        alert("⚠️ Ocurrió un error al enviar el pedido a la base de datos.\n\nAsegúrate de que tus 'Reglas de Seguridad' en la consola de Firebase no hayan expirado.");
-        btnPay.innerText = "Confirmar Pago Realizado";
+
+        console.error('ERROR FIREBASE:', error);
+
+        alert(
+            '⚠️ Ocurrió un error al enviar el pedido.\n\n' +
+            'Revisa la consola del navegador (F12) para más detalles.'
+        );
+
         btnPay.disabled = false;
+        btnPay.innerText = 'Confirmar Pago Realizado';
     }
 });
 
@@ -372,11 +413,22 @@ const inputChat = document.getElementById('chatInput');
 
 document.getElementById('quiniBtn').addEventListener('click', () => {
     chatWindow.style.display = (chatWindow.style.display === 'flex') ? 'none' : 'flex';
-    if(chatWindow.style.display === 'flex') scrollChatBottom();
+
+    if (chatWindow.style.display === 'flex') {
+        scrollChatBottom();
+    }
 });
 
-document.getElementById('btnCloseChat').addEventListener('click', () => chatWindow.style.display = 'none');
-inputChat.addEventListener('keypress', e => { if (e.key === 'Enter') procesarChatQuini(); });
+document.getElementById('btnCloseChat').addEventListener('click', () => {
+    chatWindow.style.display = 'none';
+});
+
+inputChat.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        procesarChatQuini();
+    }
+});
+
 document.getElementById('btnEnviarChat').addEventListener('click', procesarChatQuini);
 
 function scrollChatBottom() {
@@ -384,42 +436,108 @@ function scrollChatBottom() {
     msgBox.scrollTop = msgBox.scrollHeight;
 }
 
-// INSERCIÓN DE LA NUEVA CLAVE GENERADA
-const parte1 = "AIzaSyDgXi3XYMQu73Z0c"; 
-const parte2 = "kN2mw_bCB4mIo-dMp8";
+// API GEMINI
+const parte1 = 'AIzaSyDgXi3XYMQu73Z0c';
+const parte2 = 'kN2mw_bCB4mIo-dMp8';
 
-const GEMINI_API_KEY = parte1 + parte2; 
+const GEMINI_API_KEY = parte1 + parte2;
+
 const ai = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 async function procesarChatQuini() {
+
     const rawText = inputChat.value.trim();
+
     if (!rawText) return;
 
     const msgBox = document.getElementById('chatMessages');
-    msgBox.innerHTML += `<div class="msg-usuario">${rawText}</div>`;
-    inputChat.value = ""; 
+
+    msgBox.innerHTML += `
+        <div class="msg-usuario">
+            ${rawText}
+        </div>
+    `;
+
+    inputChat.value = '';
+
     scrollChatBottom();
 
-    const loadId = "load-" + Date.now();
-    msgBox.innerHTML += `<div class="msg-quini" id="${loadId}"><i>Quini está analizando las propiedades de tu consulta... 🧠🌽</i></div>`;
+    const loadId = 'load-' + Date.now();
+
+    msgBox.innerHTML += `
+        <div class="msg-quini" id="${loadId}">
+            <i>Quini está pensando... 🧠🌽</i>
+        </div>
+    `;
+
     scrollChatBottom();
 
     try {
-        const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const systemPrompt = 
-            "Eres Quini, la mascota saludable oficial de la app escolar SumaqBite. Tu objetivo es educar de forma divertida. " +
-            "Responde siempre dando DATOS CURIOSOS, importantes e interesantes sobre los superalimentos nativos peruanos de nuestro catálogo: " +
-            "muña, quinua, lúcuma, guanábana, chicha morada, palta, cacao nativo y emoliente. Destaca sus aportes para la concentración, memoria y salud escolar.";
 
-        const result = await model.generateContent(`${systemPrompt}\n\nPregunta del estudiante: ${rawText}`);
-        document.getElementById(loadId).innerHTML = result.response.text();
+        const model = ai.getGenerativeModel({
+            model: 'gemini-1.5-flash'
+        });
+
+        const prompt = `
+Eres Quini, la mascota saludable oficial de SumaqBite.
+
+Debes responder de forma:
+- amigable
+- divertida
+- corta
+- educativa
+
+Habla sobre:
+- quinua
+- muña
+- palta
+- guanábana
+- maíz morado
+- cacao peruano
+- alimentación escolar saludable
+
+Pregunta del estudiante:
+${rawText}
+`;
+
+        const result = await model.generateContent(prompt);
+
+        let respuesta = '';
+
+        if (
+            result &&
+            result.response &&
+            typeof result.response.text === 'function'
+        ) {
+            respuesta = result.response.text();
+        }
+
+        if (!respuesta || respuesta.trim() === '') {
+            respuesta = '🍎 No pude generar una respuesta válida.';
+        }
+
+        document.getElementById(loadId).innerHTML = respuesta;
+
         scrollChatBottom();
+
     } catch (e) {
-        document.getElementById(loadId).innerHTML = "¡Uy! Mi conexión con las redes andinas falló. ¡Pregúntame otra vez! 🍎";
+
+        console.error('ERROR GEMINI:', e);
+
+        document.getElementById(loadId).innerHTML = `
+            ⚠️ Quini tuvo un problema al conectarse con la IA.<br><br>
+            Revisa:
+            <br>• La API KEY de Gemini
+            <br>• Que Gemini API esté activada
+            <br>• Tu conexión a internet
+        `;
+
         scrollChatBottom();
     }
 }
 
-// ARRANQUE DE MÓDULOS
+// ==========================================
+// ARRANQUE GENERAL
+// ==========================================
 cargarEstructuraCatalogos();
 window.toggleForm();
