@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SumaqBite - Innovación que alimenta el aprendizaje</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+</head>
+<body>
+
+    <div class="bg-decoration shape-1"></div>
+    <div class="bg-decoration shape-2"></div>
+
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo-wrapper" id="nav-inicio-logo" style="cursor: pointer;">
+                <img src="logo.png" alt="SumaqBite Logo" class="main-logo" onerror="this.style.display='none'">
+            </div>
+            <nav class="main-nav">
+                <button class="nav-link active" data-target="vista-portada">Inicio</button>
+                <button class="nav-link" data-target="vista-catalogo">Catálogo</button>
+                <button class="nav-link" data-target="vista-pedido">Hacer Pedido</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <div id="vista-portada" class="tab-content active-view fade-in">
+            <section class="hero-section">
+                <h1>Bienvenido a SumaqBite</h1>
+                <p>Innovación tecnológica para una de las mejores experiencias de nutrición escolar saludable y sin colas.</p>
+                <div class="hero-actions">
+                    <button class="btn-primary-action" id="btn-ir-catalogo">Ver Todo el Catálogo</button>
+                    <button class="btn-secondary-action" id="btn-ir-armar">Armar una Lonchera</button>
+                </div>
+            </section>
+
+            <div class="section-title-box">
+                <div class="icon-wrap-orange"><i class="fa-solid fa-fire title-icon"></i></div>
+                <h2>Las Loncheras Más Compradas 🔥</h2>
+            </div>
+            <div class="grid-productos-loncheras" id="productos-populares">
+                </div>
+        </div>
+
+        <div id="vista-catalogo" class="tab-content fade-in" style="display: none;">
+            <div class="section-title-box">
+                <div class="icon-wrap-purple"><i class="fa-solid fa-box-open title-icon"></i></div>
+                <h2>Catálogo Completo de Loncheras</h2>
+            </div>
+            <div class="grid-productos-loncheras" id="productos-todos">
+                </div>
+        </div>
+
+        <div id="vista-pedido" class="tab-content fade-in" style="display: none;">
+            <section class="form-section border-decorated">
+                <div class="section-title-box">
+                    <div class="icon-wrap-orange"><i class="fa-solid fa-mobile-screen-button title-icon"></i></div>
+                    <h2>Realiza tu Pedido Digital</h2>
+                </div>
+                
+                <form id="pedidoForm" class="modern-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre">Nombre Completo del Estudiante</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-user input-icon"></i>
+                                <input type="text" id="nombre" placeholder="Ej. Juan Diego" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="grado">Grado y Sección</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-graduation-cap input-icon"></i>
+                                <input type="text" id="grado" placeholder="Ej. 4to A de Secundaria" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="selector-tipo-pedido">
+                        <label class="radio-card">
+                            <input type="radio" name="tipoPedido" value="catalogo" checked id="radio-tipo-catalogo">
+                            <span class="radio-content"><i class="fa-solid fa-book-open"></i> Elegir del Catálogo</span>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="tipoPedido" value="armar" id="radio-tipo-armar">
+                            <span class="radio-content"><i class="fa-solid fa-puzzle-piece"></i> Armar mi Lonchera</span>
+                        </label>
+                    </div>
+
+                    <div id="box-catalogo" class="form-row option-container">
+                        <div class="form-group" style="flex: 2;">
+                            <label for="productoLista">Elige la Lonchera de la lista</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-bag-shopping input-icon"></i>
+                                <select id="productoLista">
+                                    <option value="" disabled selected>-- Selecciona un menú saludable --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="box-armar" class="option-container" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="customSolido">Alimento Principal</label>
+                                <select id="customSolido" class="select-simple custom-builder">
+                                    <option value="" disabled selected>-- Elige Principal --</option>
+                                    <option value="Pan con huevo y palta">Pan integral con huevo y palta</option>
+                                    <option value="Sándwich de pollo">Sándwich integral de pollo</option>
+                                    <option value="Pan con tortilla">Pan con tortilla de verduras</option>
+                                    <option value="Pan con queso fresco">Pan con queso fresco</option>
+                                    <option value="Pan con palta">Pan con palta</option>
+                                    <option value="Mini pan con huevo">Mini pan integral con huevo</option>
+                                    <option value="Sándwich de queso">Sándwich de queso</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="customBebida">Bebida Nutritiva</label>
+                                <select id="customBebida" class="select-simple custom-builder">
+                                    <option value="" disabled selected>-- Elige Bebida --</option>
+                                    <option value="Emoliente">Emoliente escolar</option>
+                                    <option value="Agua de muña">Agua de muña</option>
+                                    <option value="Jugo de lúcuma">Jugo de lúcuma</option>
+                                    <option value="Chicha morada">Chicha morada</option>
+                                    <option value="Jugo de fresa">Jugo de fresa</option>
+                                    <option value="Refresco de maracuyá">Refresco de maracuyá</option>
+                                    <option value="Avena con manzana">Avena con manzana</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="customPostre">Complemento / Postre</label>
+                                <select id="customPostre" class="select-simple custom-builder">
+                                    <option value="" disabled selected>-- Elige Postre --</option>
+                                    <option value="Humita dulce">Humitas (Enmanuel)</option>
+                                    <option value="Mousse de maracuyá">Mousse de maracuyá</option>
+                                    <option value="Mazamorra de quinua">Mazamorra de quinua</option>
+                                    <option value="Postre de guanábana">Postre de guanábana</option>
+                                    <option value="Gelatina de frutas">Gelatina de frutas</option>
+                                    <option value="Mazamorra morada">Mazamorra morada</option>
+                                    <option value="Ensalada de frutas">Ensalada de frutas</option>
+                                    <option value="Queque de plátano">Queque integral de plátano</option>
+                                    <option value="Arroz con leche">Arroz con leche casero</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="tray-visualizer">
+                            <h4>Tu Bandeja Virtual Interactiva</h4>
+                            <div class="tray-slots">
+                                <div class="slot" id="slot-solido">
+                                    <i id="icon-solido" class="fa-solid fa-circle-question"></i>
+                                    <p id="text-solido">Vacío</p>
+                                </div>
+                                <div class="slot" id="slot-bebida">
+                                    <i id="icon-bebida" class="fa-solid fa-circle-question"></i>
+                                    <p id="text-bebida">Vacío</p>
+                                </div>
+                                <div class="slot" id="slot-postre">
+                                    <i id="icon-postre" class="fa-solid fa-circle-question"></i>
+                                    <p id="text-postre">Vacío</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 25px;">
+                        <div class="form-group">
+                            <label for="cantidad">Cantidad de Raciones</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-arrow-up-wide-short input-icon"></i>
+                                <input type="number" id="cantidad" min="1" max="5" value="1" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-enviar-moderno">
+                        <span>💳 Proceder al Pago Seguro</span>
+                    </button>
+                </form>
+            </section>
+        </div>
+
+    </main>
+
+    <div id="modal-nutricion" class="modal-overlay">
+        <div class="modal-content-box modal-animate">
+            <button class="modal-close-btn" id="close-modal-nutricion">&times;</button>
+            <div class="modal-grid">
+                <div class="modal-visual-preview">
+                    <img id="modal-imagen-real" src="" alt="Lonchera Saludable" class="imagen-lonchera-modal" default="logo.png">
+                </div>
+                <div class="modal-info-details">
+                    <h2 id="modal-titulo">Cargando...</h2>
+                    <p class="modal-price" id="modal-precio">S/ 0.00</p>
+                    
+                    <div class="modal-desc-block">
+                        <h4>Elementos Incluidos:</h4>
+                        <p id="modal-elementos">-</p>
+                    </div>
+                    <div class="modal-desc-block">
+                        <h4>Aporte Nutripedagógico:</h4>
+                        <p id="modal-beneficios">-</p>
+                    </div>
+                    
+                    <div id="modal-dato-curioso" class="sabias-que-box"></div>
+
+                    <h4>Tabla de Composición Nutritiva</h4>
+                    <table class="nutricion-table">
+                        <thead>
+                            <tr>
+                                <th>Macronutriente</th>
+                                <th>Cantidad Estimada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Calorías totales</td><td id="macro-calorias">-</td></tr>
+                            <tr><td>Proteínas</td><td id="macro-proteinas">-</td></tr>
+                            <tr><td>Carbohidratos</td><td id="macro-carbohidratos">-</td></tr>
+                            <tr><td>Grasas Saludables</td><td id="macro-grasas">-</td></tr>
+                        </tbody>
+                    </table>
+
+                    <button class="btn-modal-pedido-directo" id="btn-modal-ordenar-ya">
+                        <i class="fa-solid fa-cart-shopping"></i> ¡Hacer Pedido de esta Lonchera! 🚀
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-pago" class="modal-overlay">
+        <div class="modal-content-box-small modal-animate">
+            <h3><i class="fa-solid fa-wallet" style="color:var(--purple-main);"></i> Pasarela de Pago</h3>
+            <p id="pago-descripcion-pedido" style="margin-top:12px; font-size:0.95rem; line-height:1.4; color:#554a56;"></p>
+            
+            <div class="pago-methods-fixed">
+                <div class="qr-active-tab"><i class="fa-solid fa-qrcode"></i> Pago por Código QR (Yape / Plin)</div>
+            </div>
+            
+            <div id="pago-area-dinamica">
+                </div>
+
+            <div class="modal-pago-actions">
+                <button class="btn-pago-cancelar" id="btn-cancelar-pago">Cancelar Transación</button>
+                <button class="btn-pago-confirmar" id="btn-confirmar-pago">Confirmar Pago Realizado</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="quini-widget">
+        <button class="quini-btn-moderno" id="quiniBtn">
+            <div class="quini-pulse-ring"></div>
+            <img src="quini.png" alt="Quini IA" class="quini-avatar-img">
+            <div class="quini-bocadillo">¡Pregúntale a Quini IA! 🍎</div>
+        </button>
+
+        <div class="chat-window-moderna" id="chatWindow">
+            <div class="chat-header">
+                <div class="chat-profile">
+                    <div class="avatar-glow-container">
+                        <img src="quini.png" alt="Quini" class="chat-avatar-mini-img">
+                        <span class="status-dot"></span>
+                    </div>
+                    <div>
+                        <h4>Quini IA</h4>
+                        <small>Tu asistente de nutrición</small>
+                    </div>
+                </div>
+                <button class="close-chat" id="btnCloseChat">&times;</button>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="msg-quini">
+                    ¡Hola! Soy Quini, tu asistente virtual. Pregúntame sobre los beneficios de la guanábana, la muña, el maíz morado o cualquier insumo nativo del menú escolar. ¡Revaloremos nuestra cultura! 🌽🇵🇪
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Pregúntale algo a la IA...">
+                <button id="btnEnviarChat" class="btn-send-chat"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="modern-footer">
+        <p>SumaqBite 2026 • Innovación que alimenta el aprendizaje</p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

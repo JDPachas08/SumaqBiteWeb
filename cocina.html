@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SumaqBite - Administrador de Cocina</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+<body style="background: linear-gradient(135deg, #1f1120, #0a040b); display: flex; align-items: center; min-height: 100vh;">
+
+    <div class="container" style="max-width: 800px; width: 100%;">
+        <section class="admin-section" style="box-shadow: 0 25px 60px rgba(0,0,0,0.5);">
+            <div class="section-title-box-admin">
+                <div class="title-left">
+                    <i class="fa-solid fa-kitchen-set title-icon-white"></i>
+                    <h2 class="text-white">Panel de Despacho Central (Cocina)</h2>
+                </div>
+                <span id="contadorPedidos" class="price-tag" style="background:#7bc143;">Recibiendo órdenes...</span>
+            </div>
+            <div id="listaPedidos" class="lista-pedidos-moderna">
+                <p class="sin-pedidos">Cargando base de datos en la nube... ✨</p>
+            </div>
+        </section>
+    </div>
+
+    <script type="module" src="cocina.js"></script>
+</body>
+</html>
