@@ -34,7 +34,7 @@ const DATA_LONCHERAS = {
         precio: 5.50,
         nutricion: "Proteínas, grasas saludables y antioxidantes naturales.",
         datoCurioso: "💡 <strong>¿Sabías que?</strong> El postre de guanábana aporta una gran cantidad de acetogeninas y vitamina C, componentes medicinales que blindan tus defensas naturales y aumentan tu energía cerebral durante las horas de estudio.",
-        imagen: "foto1.jpg",
+        imagen: "foto1.png",
         macros: { kcal: "380 kcal", prot: "14g", carb: "45g", gras: "12g" }
     },
     "Lonchera Energía Andina": {
@@ -43,7 +43,7 @@ const DATA_LONCHERAS = {
         precio: 5.00,
         nutricion: "Energía equilibrada y digestión perfecta.",
         datoCurioso: "💡 <strong>¿Sabías que?</strong> La muña andina es una planta milenaria que ayuda a calmar el sistema digestivo de forma inmediata y contiene aceites esenciales que mejoran la absorción de nutrientes en el almuerzo.",
-        imagen: "foto2.jpg",
+        imagen: "foto2.png",
         macros: { kcal: "310 kcal", prot: "18g", carb: "40g", gras: "5g" }
     },
     "Lonchera Sabor Escolar": {
@@ -52,7 +52,7 @@ const DATA_LONCHERAS = {
         precio: 4.50,
         nutricion: "Fuente indispensable de calcio y multivitaminas.",
         datoCurioso: "💡 <strong>¿Sabías que?</strong> El maíz morado es uno de los alimentos con mayor cantidad de antocianinas del mundo. Estos antioxidantes cuidan tu salud y mejoran la circulación sanguínea.",
-        imagen: "foto3.jpg",
+        imagen: "foto3.png",
         macros: { kcal: "340 kcal", prot: "11g", carb: "55g", gras: "6g" }
     },
     "Lonchera Fuerza Inca": {
@@ -61,7 +61,7 @@ const DATA_LONCHERAS = {
         precio: 5.00,
         nutricion: "Fibra dietética, energía natural y vitaminas A y C.",
         datoCurioso: "💡 <strong>¿Sabías que?</strong> El emoliente escolar combina cebada, linaza y limón, creando una bebida altamente hidratante que desinflama el cuerpo y te mantiene despierto sin necesidad de azúcares dañinos.",
-        imagen: "foto4.jpg",
+        imagen: "foto4.png",
         macros: { kcal: "390 kcal", prot: "10g", carb: "62g", gras: "8g" }
     },
     "Lonchera Vitalidad Peruana": {
@@ -70,7 +70,7 @@ const DATA_LONCHERAS = {
         precio: 4.50,
         nutricion: "Grasas monoinsaturadas y alto contenido vitamínico.",
         datoCurioso: "💡 <strong>¿Sabías que?</strong> La palta peruana aporta grasas saludables (ácido oleico) esenciales para el desarrollo de las neuronas, mejorando tu memoria y retención en clase.",
-        imagen: "foto5.jpg",
+        imagen: "foto5.png",
         macros: { kcal: "290 kcal", prot: "6g", carb: "48g", gras: "9g" }
     },
     "Lonchera Misky Bite": {
@@ -79,7 +79,7 @@ const DATA_LONCHERAS = {
         precio: 4.00,
         nutricion: "Energía sostenida de lenta liberación y alta fibra.",
         datoCurioso: "💡 <strong>¿Sabías que?</strong> La avena posee betaglucanos, un tipo de fibra soluble que mantiene tus niveles de energía estables durante todo el día escolar, evitando el cansancio en el aula.",
-        imagen: "foto6.jpg",
+        imagen: "foto6.png",
         macros: { kcal: "360 kcal", prot: "12g", carb: "58g", gras: "7g" }
     },
     "Lonchera Pretium / Sumaq Kids": {
@@ -88,7 +88,7 @@ const DATA_LONCHERAS = {
         precio: 4.50,
         nutricion: "Calcio para los huesos y carbohidratos saludables.",
         datoCurioso: "💡 <strong>¿Sabías que?</strong> El arroz con leche casero endulzado con panela o miel provee una fuente rápida de carbohidratos necesarios para las actividades físicas y el deporte escolar.",
-        imagen: "foto7.jpg",
+        imagen: "foto7.png",
         macros: { kcal: "355 kcal", prot: "12g", carb: "52g", gras: "8g" }
     }
 };
